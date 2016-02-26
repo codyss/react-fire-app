@@ -1,0 +1,25 @@
+.projectPage {
+  text-align: left;
+  max-width: 60%;
+  display: block;
+  margin-left: 20px;
+}
+
+.projectForm {
+  margin-left: 20px;
+  text-align: left;
+  max-width: 40%;
+  border-width: 1px; 
+  border-color: black;
+  border-style: solid;
+  height: 100px;
+  margin-right: 20px;
+}
+
+.projectForm input {
+  margin-left: 0px;
+}
+
+.project {
+  border: 1px solid black;
+}
