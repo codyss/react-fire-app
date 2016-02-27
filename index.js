@@ -7,53 +7,78 @@
 var ProjectBox = React.createClass({
   // mixins: [ReactFireMixin],
   // ...
-  loadProjectsFromServer() {
-    $.ajax({
-      url: this.props.url,
-      dataType: 'json',
-      cache: false,
-      success: data => {
-        data.reverse()
-        this.setState({data: data})
-      }.bind(this),
-      error: (xhr, status, err) => {
-        console.error(this.props.url, status, err.toString());
-      }.bind(this)
-    })
+  // loadProjectsFromServer() {
+  //   $.ajax({
+  //     url: this.props.url,
+  //     dataType: 'json',
+  //     cache: false,
+  //     success: data => {
+  //       data.reverse()
+  //       this.setState({data: data})
+  //     }.bind(this),
+  //     error: (xhr, status, err) => {
+  //       console.error(this.props.url, status, err.toString());
+  //     }.bind(this)
+  //   })
+  // },
+  // loadProjectsFromFireBase() {
+
+  // },
+  handleProjectSubmitFirebase(project) {
+    // e.preventDefault();
+    this.firebaseRef.push({owner: project.owner, detail: project.detail});
+    this.setState({owner: "", detail: ""})
   },
-  handleProjectSubmit(project) {
-    console.log(project);
-    var projects = this.state.data;
-    project.id = Date.now();
-    var newProjects = [project].concat(projects);
-    this.setState({data: newProjects})
-    $.ajax({
-      url: this.props.url,
-      dataType: 'json',
-      type: 'POST',
-      data: project,
-      success: (data) => {
-        data.reverse();
-        this.setState({data});
-      }.bind(this),
-      error: (xhr, status, err) =>  {
-        this.setState({data: newProjects})
-        console.error(this.props.url, status, err.toString());
-      }.bind(this)
-    })
-  },
+  // handleProjectSubmit(project) {
+  //   console.log(project);
+  //   var projects = this.state.data;
+  //   project.id = Date.now();
+  //   var newProjects = [project].concat(projects);
+  //   this.setState({data: newProjects})
+  //   $.ajax({
+  //     url: this.props.url,
+  //     dataType: 'json',
+  //     type: 'POST',
+  //     data: project,
+  //     success: (data) => {
+  //       data.reverse();
+  //       this.setState({data});
+  //     }.bind(this),
+  //     error: (xhr, status, err) =>  {
+  //       this.setState({data: newProjects})
+  //       console.error(this.props.url, status, err.toString());
+  //     }.bind(this)
+  //   })
+  // },
   getInitialState() {
     return {data: []};
   },
-  componentDidMount() {
-    this.loadProjectsFromServer();
-    // setInterval(this.loadProjectsFromServer, this.props.pollInterval)
+  componentWillMount() {
+    this.firebaseRef = new Firebase("https://reactfiresample.firebaseio.com/projects");
+    this.firebaseRef.on("value", function(dataSnapshot) {
+      var items = [];
+      dataSnapshot.forEach(childSnapshot => {
+        var item = childSnapshot.val();
+        item['.key'] = childSnapshot.key();
+        items.push(item)
+      }.bind(this))
+      this.setState({
+        data: items
+      });
+    }.bind(this))
   },
+  componentWillUnmount: function() {
+  this.firebaseRef.off();
+  },
+  // componentDidMount() {
+  //   // this.loadProjectsFromServer();
+  //   // setInterval(this.loadProjectsFromServer, this.props.pollInterval)
+  // },
   render() {
     return (
       <div className="projectPage">
         <h1>Projects</h1>
-        <ProjectForm onProjectSubmit={this.handleProjectSubmit}/>
+        <ProjectForm onProjectSubmit={this.handleProjectSubmitFirebase}/>
           <div className="projectBox" >
             <ProjectList data={this.state.data} />
           </div>
@@ -65,7 +90,7 @@ var ProjectBox = React.createClass({
 var ProjectList = React.createClass({
   render() {
     var projectNodes = this.props.data.map(project => {
-      return (<Project owner={project.owner} key={project.id}>
+      return (<Project owner={project.owner} key={project.$id}>
                 {project.detail}
               </Project>);
       ;
@@ -112,6 +137,7 @@ var ProjectForm = React.createClass({
           value={this.state.detail}
           onChange={this.handleDetailChange}
         />
+        <br />
         <button type="submit" className="btn btn-default">Submit</button>
       </form>
     )
