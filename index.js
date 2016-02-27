@@ -13,21 +13,74 @@ var ProjectBox = React.createClass({
     this.firebaseRef = new Firebase("https://reactfiresample.firebaseio.com/projects");
     this.bindAsArray(this.firebaseRef, "data");
   },
-  componentWillUnmount: function() {
+  componentWillUnmount() {
   this.firebaseRef.off();
   },
   render() {
     return (
       <div className="projectPage">
         <h1>Projects</h1>
+        <div>
         <ProjectForm onProjectSubmit={this.handleProjectSubmitFirebase}/>
+        <UserProfile  />
+        </div>
           <div className="projectBox" >
             <ProjectList data={this.state.data} />
           </div>
-      </div>
+      </div>    
     )
   }
 });
+
+var UserProfile = React.createClass({
+  mixins: [ReactFireMixin],
+  getInitialState() {
+    return{userName: '', age: ''};
+  },
+  addNewUser(e) {
+    e.preventDefault();
+    var name = this.state.userName.trim();
+    var age = this.state.age.trim();
+    if (!name || !age) return;    
+    this.firebaseRefs.user.push({
+      name: name,
+      age: age
+    });
+    this.setState({userName: "", age: ""})
+  },
+  componentWillMount() {
+    this.firebaseRef = new Firebase("https://reactfiresample.firebaseio.com/users")
+    this.bindAsArray(this.firebaseRef, "user");
+  },
+  handleNameChange(e) {
+    this.setState({userName: e.target.value});
+  },
+  handleAgeChange(e) {
+    this.setState({age: e.target.value})
+  },
+  render() {
+    return (
+      <div className="UserProfile">  
+      <form className="userForm form-control" onSubmit={this.addNewUser}>
+        <input 
+          type="text"
+          placeholder="User name"
+          value = {this.state.userName}
+          onChange = {this.handleNameChange}
+        />
+        <input 
+          type="text"
+          placeholder="User Age"
+          value={this.state.age}
+          onChange={this.handleAgeChange}
+        />
+        <br />
+        <button type="submit" className="btn btn-default">Submit</button>
+      </form>
+      </div>
+    )  
+  }
+})
 
 var ProjectList = React.createClass({
   render() {
